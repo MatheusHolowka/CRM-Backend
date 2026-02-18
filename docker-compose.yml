@@ -1,0 +1,44 @@
+services:
+  # Banco de Dados MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: core-crm-db
+    restart: always
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: Csf@2753
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  # Interface Visual (pgAdmin do Mongo)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: core-crm-ui
+    restart: always
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://admin:Csf%402753@mongodb:27017/core_crm?authSource=admin&replicaSet=rs0
+      - ME_CONFIG_BASICAUTH_USERNAME=matheus
+      - ME_CONFIG_BASICAUTH_PASSWORD=Csf@2753
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+
+  # Backend NestJS + Prisma
+  api:
+    build: .
+    container_name: core-crm-api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # Ajuste aqui também:
+      DATABASE_URL: "mongodb://admin:Csf%402753@mongodb:27017/core_crm?authSource=admin&replicaSet=rs0"
+    depends_on:
+      - mongodb
+
+volumes:
+  mongodb_data:

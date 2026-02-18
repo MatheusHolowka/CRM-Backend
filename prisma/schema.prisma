@@ -1,0 +1,73 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Modelo de Empresa/Fazenda (O Tenant)
+model Tenant {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome         String
+  slug         String   @unique // Ex: "fazenda-planalto"
+  usuarios     User[]
+  leads        Lead[]
+  createdAt    DateTime @default(now())
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome      String
+  email     String   @unique
+  password  String
+  role      String   @default("USER") // Adicione esta linha
+  tenantId  String   @db.ObjectId
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model Lead {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  nome         String
+  email        String?
+  telefone     String
+  cidade       String
+  status       String     @default("NOVO")
+  origem       String     @default("WhatsApp")
+  dataCriacao  DateTime   @default(now())
+  
+  // ISOLAMENTO MULTI-TENANT
+  tenant       Tenant     @relation(fields: [tenantId], references: [id])
+  tenantId     String     @db.ObjectId
+
+  mensagens    Mensagem[]
+  notas        Nota[]
+
+  // Garante que o mesmo telefone não se repita dentro do mesmo tenant
+  @@unique([telefone, tenantId])
+}
+
+model Mensagem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  texto     String
+  fromMe    Boolean  @default(false)
+  timestamp DateTime @default(now())
+  time      String
+  
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId    String   @db.ObjectId
+
+  // Também replicamos o tenantId aqui para facilitar queries diretas se necessário
+  tenantId  String   @db.ObjectId
+}
+
+model Nota {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  conteudo  String
+  data      DateTime @default(now())
+  
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId    String   @db.ObjectId
+  tenantId  String   @db.ObjectId
+}
