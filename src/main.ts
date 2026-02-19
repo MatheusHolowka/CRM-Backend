@@ -8,7 +8,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
-      'https://crm-front.gpy5uj.easypanel.host',
+      'https://crm-crm-front.gpy5uj.easypanel.host',
       'http://localhost:4200'                   
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
