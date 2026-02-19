@@ -6,14 +6,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
 
-  app.enableCors({
-    origin: [
-      'https://crm-crm-front.gpy5uj.easypanel.host',
-      'http://localhost:4200'                   
-    ],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
+app.enableCors({
+  origin: [
+    'https://crm-crm-front.gpy5uj.easypanel.host',
+    'http://localhost:4200'                   
+  ],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS', 
+  allowedHeaders: 'Content-Type,Accept,Authorization',
+  credentials: true,
+});
 
   const port = process.env.PORT || 3000;
   
