@@ -13,5 +13,5 @@ RUN npm run build
 
 EXPOSE 3000
 
-# As variáveis sensíveis entrarão aqui, apenas na execução
-CMD sh -c "npx prisma db push && npx prisma db seed && node dist/main"
+# No seu comando de inicialização (Dockerfile ou Compose)
+CMD sh -c "sleep 10 && npx prisma db push && npx prisma db seed && node dist/main"
