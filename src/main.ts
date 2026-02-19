@@ -7,13 +7,10 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
 app.enableCors({
-  origin: [
-    'https://crm-crm-front.gpy5uj.easypanel.host',
-    'http://localhost:4200'                   
-  ],
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS', 
+  origin: '*', // Permite qualquer origem
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   allowedHeaders: 'Content-Type,Accept,Authorization',
-  credentials: true,
+  // credentials: true, // REMOVA ou comente esta linha, pois '*' não aceita true
 });
 
   const port = process.env.PORT || 3000;
