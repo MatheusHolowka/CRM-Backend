@@ -1,30 +1,27 @@
-# Etapa 1: Build
-FROM node:20-alpine AS build
+FROM node:20-alpine
+
+# Adicione estas linhas para aceitar os argumentos do Easypanel
+ARG DATABASE_URL
+ARG MONGO_ROOT_USER
+ARG MONGO_ROOT_PASSWORD
+ARG MONGO_DB_NAME
+
+# Transforma os argumentos em variáveis de ambiente para o build
+ENV DATABASE_URL=$DATABASE_URL
+
 WORKDIR /app
 
-# Instala dependências
 COPY package*.json ./
 RUN npm install
 
-# Copia código e gera o build
+COPY prisma ./prisma/
+# O Prisma agora terá a DATABASE_URL para gerar o client
+RUN npx prisma generate
+
 COPY . .
-RUN npm run build --configuration=production
+RUN npm run build
 
-# Etapa 2: Servidor interno para o Easypanel servir os arquivos
-FROM nginx:alpine
+EXPOSE 3000
 
-# Copia os arquivos da pasta que o seu log confirmou: /app/dist/crmProj/browser
-COPY --from=build /app/dist/crmProj/browser /usr/share/nginx/html
-
-# Configuração essencial para as rotas do seu CRM funcionarem no navegador
-RUN printf 'server { \n\
-    listen 80; \n\
-    location / { \n\
-        root /usr/share/nginx/html; \n\
-        index index.html index.htm; \n\
-        try_files $uri $uri/ /index.html; \n\
-    } \n\
-}' > /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Comando para rodar as operações de banco e subir a API
+CMD sh -c "npx prisma db push && npx prisma db seed && node dist/main"
