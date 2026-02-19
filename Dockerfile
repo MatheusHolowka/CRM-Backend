@@ -1,22 +1,30 @@
-FROM node:20-alpine
-
+# Etapa 1: Build
+FROM node:20-alpine AS build
 WORKDIR /app
 
-# Instala as dependências primeiro (aproveita o cache do Docker)
+# Instala dependências
 COPY package*.json ./
 RUN npm install
 
-# Copia a pasta prisma e gera o client do Prisma 7
-COPY prisma ./prisma/
-RUN npx prisma generate
-
-# Copia o restante do código fonte
+# Copia código e gera o build
 COPY . .
+RUN npm run build --configuration=production
 
-# Executa o build do NestJS - se houver erro aqui, o Docker vai avisar no console
-RUN npm run build
+# Etapa 2: Servidor interno para o Easypanel servir os arquivos
+FROM nginx:alpine
 
-EXPOSE 3000
+# Copia os arquivos da pasta que o seu log confirmou: /app/dist/crmProj/browser
+COPY --from=build /app/dist/crmProj/browser /usr/share/nginx/html
 
-# Executa o arquivo gerado
-CMD ["node", "dist/main"]
+# Configuração essencial para as rotas do seu CRM funcionarem no navegador
+RUN printf 'server { \n\
+    listen 80; \n\
+    location / { \n\
+        root /usr/share/nginx/html; \n\
+        index index.html index.htm; \n\
+        try_files $uri $uri/ /index.html; \n\
+    } \n\
+}' > /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
