@@ -1,22 +1,24 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const logger = new Logger('Bootstrap');
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      origin: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+      credentials: true,
+    }
+  });
 
-app.enableCors({
-  origin: '*', // Permite qualquer origem
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  allowedHeaders: 'Content-Type,Accept,Authorization',
-  // credentials: true, // REMOVA ou comente esta linha, pois '*' não aceita true
-});
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  const port = process.env.PORT || 3000;
+  const port = 3000;
+  // Usar 0.0.0.0 aqui resolve o conflito de localhost no Windows
+  await app.listen(port, '0.0.0.0'); 
   
-  await app.listen(port, '0.0.0.0');
-  
-  logger.log(`Aplicação Core CRM rodando na porta: ${port}`);
+  console.log(`🚀 API rodando em: http://localhost:${port}`);
 }
 bootstrap();
