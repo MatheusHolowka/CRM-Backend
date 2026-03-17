@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { LeadsService } from './leads.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,8 +31,17 @@ export class LeadsController {
   updateStatus(
     @Param('id') id: string,
     @Body('status') status: string,
-    @Req() req
+    @Req() req,
   ) {
     return this.leadsService.updateStatus(id, req.user.tenantId, status);
+  }
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() dto: Partial<CreateLeadDto>,
+    @Req() req,
+  ) {
+    // Esse método chama o this.leadsService.update que já criamos no Service anteriormente
+    return this.leadsService.update(id, dto, req.user.tenantId);
   }
 }
